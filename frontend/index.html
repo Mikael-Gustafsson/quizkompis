@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizkompis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-black font-sans flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="max-w-xl w-full">
+    <h1 class="text-4xl font-bold text-center mb-6">👋 Välkommen till Quizkompis!</h1>
+    <p class="text-lg text-center mb-4 text-gray-700">
+      Träna på tentafrågor med hjälp av en AI-kompis som anpassar nivån efter hur det går för dig.
+    </p>
+
+    <!-- Namn + val av quiz -->
+    <div id="nameForm" class="bg-gray-100 p-6 rounded-2xl shadow-lg text-center">
+      <input id="nameInput" type="text" placeholder="Skriv ditt namn här"
+        class="mb-4 w-full px-4 py-2 border border-gray-300 rounded-xl text-lg" />
+
+      <select id="categorySelect" class="mb-4 w-full px-4 py-2 border border-gray-300 rounded-xl text-lg">
+        <option value="">Valfri kategori</option>
+        <option value="9">Allmänbildning</option>
+        <option value="10">Böcker</option>
+        <option value="11">Film</option>
+        <option value="12">Musik</option>
+        <option value="13">Musikaler & Teater</option>
+        <option value="14">TV</option>
+        <option value="15">TV-spel</option>
+        <option value="16">Brädspel</option>
+        <option value="17">Vetenskap & Natur</option>
+        <option value="18">Datorer</option>
+        <option value="19">Matematik</option>
+        <option value="20">Myter & Legender</option>
+        <option value="21">Sport</option>
+        <option value="22">Geografi</option>
+        <option value="23">Historia</option>
+        <option value="24">Politik</option>
+        <option value="25">Konst</option>
+        <option value="26">Kändisar</option>
+        <option value="27">Djur</option>
+        <option value="28">Fordon</option>
+        <option value="29">Tecknade serier & Anime</option>
+        <option value="30">Tecknade serier (böcker)</option>
+      </select>
+
+      <select id="difficultySelect" class="mb-4 w-full px-4 py-2 border border-gray-300 rounded-xl text-lg">
+        <option value="easy">Lätt</option>
+        <option value="medium">Medel</option>
+        <option value="hard">Svår</option>
+      </select>
+
+      <button onclick="saveName()"
+        class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl text-lg transition-all">
+        Börja quizet
+      </button>
+    </div>
+
+    <!-- Själva quizet -->
+    <div id="quiz" class="mt-10 hidden">
+      <h2 id="greeting" class="text-2xl font-semibold mb-2 text-center"></h2>
+
+      <!-- Fråga + hjälpknapp i rad -->
+      <div class="flex justify-between items-start mb-2">
+        <h2 id="question" class="text-xl font-medium"></h2>
+        <button id="helpBtn" class="hidden bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-4 py-2 rounded-xl transition-all ml-4 text-sm">
+          💡 Få AI-hjälp
+        </button>
+      </div>
+
+      <!-- Quizkompisen dyker upp här -->
+      <div id="aiHelper" class="hidden flex items-start gap-4 mb-4">
+        <img src="ai-helper.png" alt="Quizkompisen" class="w-20 h-20 rounded-full shadow" />
+        <div id="hintBox" class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-sm rounded-xl p-4 max-w-sm">
+          ...
+        </div>
+      </div>
+
+      <!-- Svarsalternativ -->
+      <div id="options" class="space-y-2"></div>
+    </div>
+
+    <!-- Resultat -->
+    <div id="score" class="mt-6 text-center text-xl font-semibold hidden"></div>
+
+    <!-- Spela igen -->
+    <div id="restart" class="mt-6 text-center hidden">
+      <button onclick="restartQuiz()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl text-lg transition-all">
+        Spela igen
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
