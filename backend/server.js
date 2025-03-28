@@ -60,6 +60,25 @@ app.post('/get-hint', async (req, res) => {
   }
 });
 
+
+// POST: /get-feedback → skickas vidare till Flask
+app.post('/get-feedback', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5000/get-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("💥 Fel vid vidarebefordran av feedback:", err);
+    res.status(500).json({ feedback: "🤖 Kunde inte hämta feedback just nu" });
+  }
+});
+
+
 // Starta servern
 app.listen(3000, () => {
   console.log('Node server running at http://localhost:3000');

@@ -12,11 +12,20 @@ function saveName() {
   category = document.getElementById('categorySelect').value;
   startingDifficulty = document.getElementById('difficultySelect').value;
 
+  // Visa quizet, göm formuläret
   document.getElementById('nameForm').classList.add('hidden');
   document.getElementById('quiz').classList.remove('hidden');
-  document.getElementById('greeting').innerText = `Hej ${userName}!`;
 
-  fetchNewQuestion();
+  // Skriv "Lycka till" i robotens pratbubbla med maskinskrivning
+  typeWriterEffect("robotGreeting", `Lycka till, ${userName}! Nu kör vi!`);
+
+  // Göm robotens hälsning efter 3 sekunder
+  setTimeout(() => {
+    document.getElementById("robotGreeting").classList.add("hidden");
+  }, 3000);
+
+  // Starta första frågan
+  setTimeout(fetchNewQuestion, 3000);
 }
 
 async function fetchNewQuestion() {
@@ -62,9 +71,11 @@ async function submitAnswer(correct) {
       message = 'Jag tror du behöver träna lite mer innan tentan 😅';
     }
 
-    document.getElementById('score').innerText =
-      `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! \n\n${message}`;
-    document.getElementById('score').classList.remove('hidden');
+    const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! ${message}\n\nVill du spela igen? Tryck på knappen nedan! 🔁`;
+    const robotBubble = document.getElementById('robotGreeting');
+    robotBubble.classList.remove('hidden');
+    typeWriterEffect("robotGreeting", fullMessage);
+
     document.getElementById('restart').classList.remove('hidden');
   } else {
     showQuestion(data);
@@ -75,15 +86,11 @@ function showQuestion(data) {
   document.getElementById('question').innerText = decodeURIComponent(data.question);
 
   const helpButton = document.getElementById('helpBtn');
-  const aiHelper = document.getElementById('aiHelper');
-  const hintBox = document.getElementById('hintBox');
+  const robotGreeting = document.getElementById('robotGreeting');
 
   helpButton.classList.remove('hidden');
   helpButton.innerText = '💡 Få hjälp';
   helpButton.disabled = false;
-
-  aiHelper.classList.add('hidden');
-  hintBox.innerText = '';
 
   helpButton.onclick = async () => {
     helpButton.innerText = '⏳ Hämtar tips...';
@@ -100,11 +107,11 @@ function showQuestion(data) {
       });
 
       const result = await res.json();
-      hintBox.innerText = result.hint;
-      aiHelper.classList.remove('hidden');
+      robotGreeting.classList.remove('hidden');
+      typeWriterEffect("robotGreeting", result.hint);
     } catch (error) {
-      hintBox.innerText = '❌ Kunde inte hämta tips.';
-      aiHelper.classList.remove('hidden');
+      robotGreeting.classList.remove('hidden');
+      typeWriterEffect("robotGreeting", "❌ Kunde inte hämta tips.");
     }
 
     helpButton.innerText = '💡 Få AI-hjälp igen';
@@ -123,10 +130,10 @@ function showQuestion(data) {
 
     btn.onclick = () => {
       const isCorrect = option === data.answer;
-
+    
       btn.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
       btn.classList.add(isCorrect ? 'bg-green-400' : 'bg-red-400');
-
+    
       buttons.forEach(b => {
         if (b.innerText === decodeURIComponent(data.answer)) {
           b.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
@@ -134,11 +141,37 @@ function showQuestion(data) {
         }
         b.disabled = true;
       });
-
+    
+      // Visa kort feedback i robotens bubbla
+      fetch('/get-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correct: isCorrect })
+      })
+      .then(res => res.json())
+      .then(data => {
+        robotGreeting.classList.remove('hidden');
+        typeWriterEffect("robotGreeting", data.feedback);
+      })
+      .catch(() => {
+        robotGreeting.classList.remove('hidden');
+        typeWriterEffect("robotGreeting", isCorrect ? "Bra!" : "Nästan!");
+      });
+      
+    
+      // ❗ Göm bara bubblan om det inte är sista frågan
+      if (questionCount < TOTAL_QUESTIONS - 1) {
+        setTimeout(() => {
+          robotGreeting.classList.add('hidden');
+        }, 2000);
+      }
+    
+      // Nästa fråga
       setTimeout(() => {
         submitAnswer(isCorrect);
       }, 1000);
     };
+    
 
     buttons.push(btn);
     optionsDiv.appendChild(btn);
@@ -154,7 +187,29 @@ function restartQuiz() {
 
   document.getElementById('nameForm').classList.remove('hidden');
   document.getElementById('quiz').classList.add('hidden');
-  document.getElementById('score').classList.add('hidden');
+  document.getElementById('score')?.classList.add('hidden'); // if it exists
   document.getElementById('restart').classList.add('hidden');
   document.getElementById('nameInput').value = '';
+  document.getElementById('robotGreeting').classList.add('hidden'); // 👈 denna rad!
 }
+
+
+function typeWriterEffect(elementId, text, speed = 30) {
+  const element = document.getElementById(elementId);
+  element.textContent = '';
+  let index = 0;
+
+  function type() {
+    if (index < text.length) {
+      element.textContent += text.charAt(index);
+      index++;
+      setTimeout(type, speed);
+    }
+  }
+
+  type();
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  typeWriterEffect("robotGreeting", "Hej! Jag är din quizkompis. Redo att träna?");
+});

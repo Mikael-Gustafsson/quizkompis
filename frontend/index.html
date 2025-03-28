@@ -7,11 +7,23 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white text-black font-sans flex flex-col items-center justify-center min-h-screen p-4">
-  <div class="max-w-xl w-full">
-    <h1 class="text-4xl font-bold text-center mb-6">👋 Välkommen till Quizkompis!</h1>
-    <p class="text-lg text-center mb-4 text-gray-700">
-      Träna på tentafrågor med hjälp av en AI-kompis som anpassar nivån efter hur det går för dig.
-    </p>
+
+<!-- YTTRE CONTAINER för hela innehållet -->
+<div class="w-full max-w-xl">
+
+  <!-- Robot och pratbubbla -->
+  <div class="flex flex-col items-start mb-6 relative">
+    
+    <!-- Pratbubbla med svans -->
+    <div id="robotGreeting" class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-lg rounded-xl px-4 py-2 shadow w-fit max-w-md min-h-[60px] mb-2 relative">
+      <!-- Text skrivs ut här -->
+      <div class="absolute -bottom-2 left-6 w-4 h-4 bg-yellow-100 border-l border-b border-yellow-300 rotate-45"></div>
+    </div>
+
+    <!-- Robotbild under -->
+    <img src="robot-head.png" alt="Quizkompis robot" class="w-16 h-16" />
+  </div>
+
 
     <!-- Namn + val av quiz -->
     <div id="nameForm" class="bg-gray-100 p-6 rounded-2xl shadow-lg text-center">
@@ -19,7 +31,7 @@
         class="mb-4 w-full px-4 py-2 border border-gray-300 rounded-xl text-lg" />
 
       <select id="categorySelect" class="mb-4 w-full px-4 py-2 border border-gray-300 rounded-xl text-lg">
-        <option value="">Valfri kategori</option>
+        <option value="">Välj frågor</option>
         <option value="9">Allmänbildning</option>
         <option value="10">Böcker</option>
         <option value="11">Film</option>
@@ -58,22 +70,15 @@
 
     <!-- Själva quizet -->
     <div id="quiz" class="mt-10 hidden">
+      <!-- (du kan ta bort denna rad om du inte använder den längre) -->
       <h2 id="greeting" class="text-2xl font-semibold mb-2 text-center"></h2>
 
       <!-- Fråga + hjälpknapp i rad -->
-      <div class="flex justify-between items-start mb-2">
-        <h2 id="question" class="text-xl font-medium"></h2>
-        <button id="helpBtn" class="hidden bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-4 py-2 rounded-xl transition-all ml-4 text-sm">
+      <div class="flex justify-between items-start mb-4 gap-4">
+        <h2 id="question" class="text-xl font-medium max-w-[75%]"></h2>
+        <button id="helpBtn" class="hidden whitespace-nowrap bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-4 py-2 rounded-xl transition-all text-sm">
           💡 Få AI-hjälp
         </button>
-      </div>
-
-      <!-- Quizkompisen dyker upp här -->
-      <div id="aiHelper" class="hidden flex items-start gap-4 mb-4">
-        <img src="ai-helper.png" alt="Quizkompisen" class="w-20 h-20 rounded-full shadow" />
-        <div id="hintBox" class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-sm rounded-xl p-4 max-w-sm">
-          ...
-        </div>
       </div>
 
       <!-- Svarsalternativ -->
@@ -89,7 +94,8 @@
         Spela igen
       </button>
     </div>
-  </div>
+
+  </div> <!-- 👈 Stänger max-w-xl container -->
 
   <script src="app.js"></script>
 </body>

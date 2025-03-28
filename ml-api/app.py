@@ -57,6 +57,38 @@ Ge en smart ledtråd som kan hjälpa eleven hitta rätt svar, men avslöja inte 
         print("🛑 Fel vid GPT-anrop:", e)
         return jsonify({ "hint": "AI:n kunde inte svara just nu 😢 Försök igen snart." })
 
+
+@app.route('/get-feedback', methods=['POST'])
+def get_feedback():
+    data = request.get_json()
+    correct = data.get("correct", False)
+
+    user_prompt = (
+        "Ge ett kort, positivt och peppande uttryck (max 2 ord) om eleven svarar rätt."
+        if correct else
+        "Ge ett kort, vänligt uttryck (max 2 ord) om eleven svarar fel."
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Du är en peppig quizkompis som ger korta reaktioner."},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.9,
+            max_tokens=10
+        )
+        feedback = response.choices[0].message.content.strip()
+        print("🎉 Feedback från OpenAI:", feedback)
+        return jsonify({"feedback": feedback})
+
+    except Exception as e:
+        print("🛑 Fel vid GPT-feedback:", e)
+        return jsonify({"feedback": "Bra jobbat!" if correct else "Försök igen!"})
+
+
+
 if __name__ == '__main__':
     print("🚀 Flask-servern körs på http://localhost:5000")
     app.run(port=5000)
