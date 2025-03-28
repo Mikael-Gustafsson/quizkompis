@@ -4,6 +4,8 @@ let score = 0;
 let questionCount = 0;
 let category = '';
 let startingDifficulty = '';
+let startTime = 0;
+
 
 function saveName() {
   userName = document.getElementById('nameInput').value.trim();
@@ -12,19 +14,17 @@ function saveName() {
   category = document.getElementById('categorySelect').value;
   startingDifficulty = document.getElementById('difficultySelect').value;
 
-  // Visa quizet, göm formuläret
   document.getElementById('nameForm').classList.add('hidden');
   document.getElementById('quiz').classList.remove('hidden');
 
-  // Skriv "Lycka till" i robotens pratbubbla med maskinskrivning
   typeWriterEffect("robotGreeting", `Lycka till, ${userName}! Nu kör vi!`);
 
-  // Göm robotens hälsning efter 3 sekunder
+  startTime = Date.now();
+
   setTimeout(() => {
     document.getElementById("robotGreeting").classList.add("hidden");
   }, 3000);
 
-  // Starta första frågan
   setTimeout(fetchNewQuestion, 3000);
 }
 
@@ -64,17 +64,27 @@ async function submitAnswer(correct) {
 
     let message = '';
     if (score >= 4) {
-      message = 'Jag gissar att du kommer klara tentan finemang! 🏆';
+      message = 'Jag gissar att du kommer klara tentan finemang! \ud83c\udf1f';
     } else if (score >= 3) {
-      message = 'Bra jobbat! Men jag tror du kan träna lite till 💪';
+      message = 'Bra jobbat! Men jag tror du kan träna lite till \ud83d\udcaa';
     } else {
-      message = 'Jag tror du behöver träna lite mer innan tentan 😅';
+      message = 'Jag tror du behöver träna lite mer innan tentan \ud83d\ude05';
     }
 
-    const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! ${message}\n\nVill du spela igen? Tryck på knappen nedan! 🔁`;
+    const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! ${message}\n\nVill du spela igen? Tryck på knappen nedan! \ud83d\udd01`;
     const robotBubble = document.getElementById('robotGreeting');
     robotBubble.classList.remove('hidden');
     typeWriterEffect("robotGreeting", fullMessage);
+
+    // Skicka till databasen
+    // Spara poäng till servern
+    fetch('/save-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score }) // <--- bara poängen
+    });
+
+    
 
     document.getElementById('restart').classList.remove('hidden');
   } else {
@@ -130,10 +140,10 @@ function showQuestion(data) {
 
     btn.onclick = () => {
       const isCorrect = option === data.answer;
-    
+
       btn.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
       btn.classList.add(isCorrect ? 'bg-green-400' : 'bg-red-400');
-    
+
       buttons.forEach(b => {
         if (b.innerText === decodeURIComponent(data.answer)) {
           b.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
@@ -141,37 +151,32 @@ function showQuestion(data) {
         }
         b.disabled = true;
       });
-    
-      // Visa kort feedback i robotens bubbla
+
       fetch('/get-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correct: isCorrect })
       })
-      .then(res => res.json())
-      .then(data => {
-        robotGreeting.classList.remove('hidden');
-        typeWriterEffect("robotGreeting", data.feedback);
-      })
-      .catch(() => {
-        robotGreeting.classList.remove('hidden');
-        typeWriterEffect("robotGreeting", isCorrect ? "Bra!" : "Nästan!");
-      });
-      
-    
-      // ❗ Göm bara bubblan om det inte är sista frågan
+        .then(res => res.json())
+        .then(data => {
+          robotGreeting.classList.remove('hidden');
+          typeWriterEffect("robotGreeting", data.feedback);
+        })
+        .catch(() => {
+          robotGreeting.classList.remove('hidden');
+          typeWriterEffect("robotGreeting", isCorrect ? "Bra!" : "Nästan!");
+        });
+
       if (questionCount < TOTAL_QUESTIONS - 1) {
         setTimeout(() => {
           robotGreeting.classList.add('hidden');
         }, 2000);
       }
-    
-      // Nästa fråga
+
       setTimeout(() => {
         submitAnswer(isCorrect);
       }, 1000);
     };
-    
 
     buttons.push(btn);
     optionsDiv.appendChild(btn);
@@ -187,12 +192,11 @@ function restartQuiz() {
 
   document.getElementById('nameForm').classList.remove('hidden');
   document.getElementById('quiz').classList.add('hidden');
-  document.getElementById('score')?.classList.add('hidden'); // if it exists
+  document.getElementById('score')?.classList.add('hidden');
   document.getElementById('restart').classList.add('hidden');
   document.getElementById('nameInput').value = '';
-  document.getElementById('robotGreeting').classList.add('hidden'); // 👈 denna rad!
+  document.getElementById('robotGreeting').classList.add('hidden');
 }
-
 
 function typeWriterEffect(elementId, text, speed = 30) {
   const element = document.getElementById(elementId);
@@ -213,3 +217,43 @@ function typeWriterEffect(elementId, text, speed = 30) {
 window.addEventListener("DOMContentLoaded", () => {
   typeWriterEffect("robotGreeting", "Hej! Jag är din quizkompis. Redo att träna?");
 });
+
+
+
+
+
+
+async function showHistory() {
+  const container = document.getElementById("historyContainer");
+
+  if (!container.classList.contains("hidden")) {
+    container.classList.add("hidden");
+    container.innerHTML = "";
+    return;
+  }
+
+  try {
+    const res = await fetch("/all-scores");
+    const data = await res.json();
+
+    if (data.length === 0) {
+      container.innerHTML = "<p>Inga tidigare rundor ännu 📭</p>";
+    } else {
+      container.innerHTML = `
+        <h3 class="font-semibold mb-2">Tidigare poäng:</h3>
+        <ul class="space-y-1">
+          ${data.slice(0, 5).map(r => `
+            <li>Poäng: ${r[1]}</li>
+          `).join('')}
+        </ul>
+      `;
+    }
+
+    container.classList.remove("hidden");
+  } catch (err) {
+    container.innerHTML = "<p>Kunde inte hämta historiken 😕</p>";
+    container.classList.remove("hidden");
+  }
+}
+
+

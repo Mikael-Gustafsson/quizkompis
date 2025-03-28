@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from database import init_db, save_score, get_all_scores
 from model import choose_question
 from openai import OpenAI
 import os
@@ -7,6 +8,8 @@ import os
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
+init_db()
+
 
 @app.route('/get-question', methods=['POST'])
 def get_question():
@@ -88,6 +91,28 @@ def get_feedback():
         return jsonify({"feedback": "Bra jobbat!" if correct else "Försök igen!"})
 
 
+@app.route('/save-score', methods=['POST'])
+def save_score_route():
+    try:
+        data = request.get_json()
+        score = data.get("score")
+
+        if score is None:
+            return jsonify({ "status": "error", "message": "Ingen poäng skickades." }), 400
+
+        print(f"📬 Mottagen poäng från frontend: {score}")  # 👈 logga till terminalen
+
+        save_score(score)
+        return jsonify({ "status": "ok" })
+    except Exception as e:
+        print("🛑 Fel vid sparande av poäng:", e)
+        return jsonify({ "status": "error", "message": "Kunde inte spara poängen." }), 500
+
+
+@app.route('/all-scores', methods=['GET'])
+def all_scores_route():
+    scores = get_all_scores()
+    return jsonify(scores)
 
 if __name__ == '__main__':
     print("🚀 Flask-servern körs på http://localhost:5000")

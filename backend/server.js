@@ -79,6 +79,38 @@ app.post('/get-feedback', async (req, res) => {
 });
 
 
+// POST: /save-score → skickas vidare till Flask
+app.post('/save-score', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5000/save-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("💥 Fel vid vidarebefordran av poäng:", err);
+    res.status(500).json({ status: "misslyckades" });
+  }
+});
+
+
+// GET: /all-scores → skickas vidare till Flask
+app.get('/all-scores', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5000/all-scores');
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("💥 Fel vid vidarebefordran av historik:", err);
+    res.status(500).json({ error: "Kunde inte hämta historik" });
+  }
+});
+
+
+
 // Starta servern
 app.listen(3000, () => {
   console.log('Node server running at http://localhost:3000');
