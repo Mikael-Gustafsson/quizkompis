@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Logga in</title>
+  <script src="https://cdn.tailwindcss.com"></script> <!-- 👈 DENNA RAD -->
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm text-center">
+    <img src="robot-head.png" alt="Robot" class="w-24 h-24 mx-auto mb-4" />
+  
+    <h2 class="text-3xl font-bold text-gray-800 mb-1">Välkommen till <span class="text-blue-600">Quizkompis 😀</span></h2>
+    <p class="text-gray-600 text-sm mb-4">Logga in och kör igång!</p>
+    
+  
+    <form id="loginForm" class="flex flex-col gap-4">
+      <input name="username" type="text" placeholder="Användarnamn" required
+        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+      
+      <input name="password" type="password" placeholder="Lösenord" required
+        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+      
+      <button type="submit"
+        class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition text-sm">
+        Logga in
+      </button>
+    </form>
+  </div>
+  
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: e.target.username.value,
+          password: e.target.password.value
+        })
+      });
+
+      if (res.ok) {
+        window.location.href = '/index.html';
+      } else {
+        alert("Fel användarnamn eller lösenord");
+      }
+    });
+  </script>
+</body>
+</html>
