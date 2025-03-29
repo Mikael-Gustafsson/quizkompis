@@ -80,20 +80,9 @@ function avslutaQuiz() {
   const robotGreeting = document.getElementById("robotGreeting");
   const bubbleTail = document.getElementById("bubbleTail");
 
-  // Visa snurra medan vi väntar
-  robotGreeting.innerHTML = `
-  <svg class="animate-spin inline h-5 w-5 text-yellow-700 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-  </svg>
-  Vänta lite... jag räknar ditt resultat 🤔
-`;
-
-
-
-  robotGreeting.classList.remove("hidden");
-  robotGreeting.classList.add("min-h-[180px]");
-  if (bubbleTail) bubbleTail.classList.remove("hidden");
+  // Göm pratbubblan helt
+  robotGreeting.classList.add("hidden");
+  if (bubbleTail) bubbleTail.classList.add("hidden");
 
   // Spara poäng till server direkt
   fetch('/save-score', {
@@ -102,12 +91,18 @@ function avslutaQuiz() {
     body: JSON.stringify({ score })
   });
 
-  // Visa slutmeddelande efter 2.5 sekunder
+  // Visa slutmeddelande + bubbla efter 2.5 sekunder
   setTimeout(() => {
     robotGreeting.innerHTML = fullMessage;
+    robotGreeting.classList.remove("hidden");
+    robotGreeting.classList.add("min-h-[180px]");
+    if (bubbleTail) bubbleTail.classList.remove("hidden");
     document.getElementById('restart').classList.remove('hidden');
-  }, 2500);
+  }, 1500);
 }
+
+
+
 
 
 

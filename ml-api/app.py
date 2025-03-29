@@ -44,7 +44,7 @@ Fråga: {question}
 Alternativ:
 {options_text}
 
-Ge en kort och smart ledtråd som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
+Ge en kort och smart ledtråd (MAX 40 tecken) som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
 """
 
     try:
@@ -70,9 +70,9 @@ def get_feedback():
     correct = data.get("correct", False)
 
     user_prompt = (
-        "Ge ett kort, positivt och peppande uttryck (max 2 ord) om eleven svarar rätt."
+        "Ge ett kort, positivt och peppande uttryck (max 2 ord, alltid på svenska) om eleven svarar rätt."
         if correct else
-        "Ge ett kort, vänligt uttryck (max 2 ord) om eleven svarar fel."
+        "Ge ett kort, vänligt uttryck (max 2 ord, alltid på svenska) om eleven svarar fel."
     )
 
     try:
