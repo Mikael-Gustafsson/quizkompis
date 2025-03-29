@@ -6,6 +6,8 @@ let category = '';
 let startingDifficulty = '';
 let startTime = 0;
 let currentQuestionIndex = 0;
+let allQuestions = [];
+let currentIndex = 0;
 
 
 
@@ -31,75 +33,70 @@ function saveName() {
 }
 
 async function fetchNewQuestion() {
-  const res = await fetch('/submit-answer', {
+  const res = await fetch('/get-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      correct: null,
       category,
-      startingDifficulty
+      startingDifficulty,
+      amount: TOTAL_QUESTIONS
     })
   });
 
   const data = await res.json();
+  allQuestions = data.questions;
+  currentIndex = 0;
+  questionCount = 0;
+  score = 0;
 
   document.getElementById("progressContainer").classList.remove("hidden");
-  currentQuestionIndex = 0;
-  updateProgressBar(currentQuestionIndex);
+  updateProgressBar(currentIndex);
 
-  showQuestion(data);
+  showQuestion(allQuestions[currentIndex]);
 }
+
 
 async function submitAnswer(correct) {
   if (correct) score++;
   questionCount++;
+  currentIndex++;
 
-  const res = await fetch('/submit-answer', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      correct,
-      category,
-      startingDifficulty
-    })
-  });
-
-  const data = await res.json();
+  updateProgressBar(currentIndex);
 
   if (questionCount >= TOTAL_QUESTIONS) {
-    document.getElementById('quiz').classList.add('hidden');
-
-    let message = '';
-    if (score >= 4) {
-      message = 'Jag gissar att du kommer klara tentan finemang! \ud83c\udf1f';
-    } else if (score >= 3) {
-      message = 'Bra jobbat! Men jag tror du kan träna lite till \ud83d\udcaa';
-    } else {
-      message = 'Jag tror du behöver träna lite mer innan tentan \ud83d\ude05';
-    }
-
-    const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! ${message}\n\nVill du spela igen? Tryck på knappen nedan! \ud83d\udd01`;
-    const robotBubble = document.getElementById('robotGreeting');
-    robotBubble.classList.remove('hidden');
-    typeWriterEffect("robotGreeting", fullMessage);
-
-    // Skicka till databasen
-    // Spara poäng till servern
-    fetch('/save-score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score }) // <--- bara poängen
-    });
-
-
-
-    document.getElementById('restart').classList.remove('hidden');
+    avslutaQuiz();
   } else {
-    showQuestion(data);
-    currentQuestionIndex++;
-    updateProgressBar(currentQuestionIndex);
+    showQuestion(allQuestions[currentIndex]);
   }
 }
+
+
+function avslutaQuiz() {
+  document.getElementById('quiz').classList.add('hidden');
+
+  let message = '';
+  if (score >= 4) {
+    message = 'Jag gissar att du kommer klara tentan finemang! 🌟';
+  } else if (score >= 3) {
+    message = 'Bra jobbat! Men jag tror du kan träna lite till 💪';
+  } else {
+    message = 'Jag tror du behöver träna lite mer innan tentan 😅';
+  }
+
+  const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! ${message}\n\nVill du spela igen? Tryck på knappen nedan! 🔁`;
+  const robotBubble = document.getElementById('robotGreeting');
+  robotBubble.classList.remove('hidden');
+  typeWriterEffect("robotGreeting", fullMessage);
+
+  fetch('/save-score', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ score })
+  });
+
+  document.getElementById('restart').classList.remove('hidden');
+}
+
 
 
 

@@ -14,7 +14,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-const db = new sqlite3.Database('../ml-api/quiz.db'); 
+const db = new sqlite3.Database('../ml-api/quiz.db');
 
 
 // Hantera __dirname i ES modules
@@ -54,7 +54,7 @@ app.post('/submit-answer', async (req, res) => {
     userHistory.push({ correct });
   }
 
-  const response = await fetch('http://localhost:5000/get-question', {
+  const response = await fetch('http://localhost:5000/get-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -67,6 +67,26 @@ app.post('/submit-answer', async (req, res) => {
   const data = await response.json();
   res.json(data);
 });
+
+
+// POST: /get-questions → skickas vidare till Flask
+app.post('/get-questions', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5000/get-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("💥 Fel vid vidarebefordran av frågor:", err);
+    res.status(500).json({ questions: [] });
+  }
+});
+
+
 
 // POST: /get-hint → skickas vidare till Flask
 app.post('/get-hint', async (req, res) => {
