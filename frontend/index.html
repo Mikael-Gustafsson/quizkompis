@@ -1,28 +1,32 @@
 <!DOCTYPE html>
 <html lang="sv">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quizkompis</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-white text-black font-sans flex flex-col items-center justify-center min-h-screen p-4">
 
-<!-- YTTRE CONTAINER för hela innehållet -->
-<div class="w-full max-w-xl">
+  <!-- YTTRE CONTAINER för hela innehållet -->
+  <div class="w-full max-w-xl">
 
-  <!-- Robot och pratbubbla -->
-  <div class="flex flex-col items-start mb-6 relative">
-    
-    <!-- Pratbubbla med svans -->
-    <div id="robotGreeting" class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-lg rounded-xl px-4 py-2 shadow w-fit max-w-md min-h-[60px] mb-2 relative">
-      <!-- Text skrivs ut här -->
-      <div class="absolute -bottom-2 left-6 w-4 h-4 bg-yellow-100 border-l border-b border-yellow-300 rotate-45"></div>
+    <!-- Robot och pratbubbla -->
+    <div class="flex flex-col items-start mb-6 relative">
+
+      <!-- Pratbubbla med svans -->
+      <div id="robotGreeting"
+        class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-lg rounded-xl px-4 py-2 shadow w-fit max-w-md min-h-[60px] mb-2 relative">
+        <!-- Text skrivs ut här -->
+        <div class="absolute -bottom-2 left-6 w-4 h-4 bg-yellow-100 border-l border-b border-yellow-300 rotate-45">
+        </div>
+      </div>
+
+      <!-- Robotbild under -->
+      <img src="robot-head.png" alt="Quizkompis robot" class="w-16 h-16" />
     </div>
-
-    <!-- Robotbild under -->
-    <img src="robot-head.png" alt="Quizkompis robot" class="w-16 h-16" />
-  </div>
 
 
     <!-- Namn + val av quiz -->
@@ -70,19 +74,28 @@
 
     <!-- Själva quizet -->
     <div id="quiz" class="mt-10 hidden">
+
+
       <!-- (du kan ta bort denna rad om du inte använder den längre) -->
       <h2 id="greeting" class="text-2xl font-semibold mb-2 text-center"></h2>
 
       <!-- Fråga + hjälpknapp i rad -->
       <div class="flex justify-between items-start mb-4 gap-4">
         <h2 id="question" class="text-xl font-medium max-w-[75%]"></h2>
-        <button id="helpBtn" class="hidden whitespace-nowrap bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-4 py-2 rounded-xl transition-all text-sm">
+        <button id="helpBtn"
+          class="hidden whitespace-nowrap bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-4 py-2 rounded-xl transition-all text-sm">
           💡 Få AI-hjälp
         </button>
       </div>
 
       <!-- Svarsalternativ -->
       <div id="options" class="space-y-2"></div>
+      <!-- Progressbar -->
+      <div id="progressContainer" class="w-full bg-gray-200 rounded-full h-3 mt-5 mb-4 overflow-hidden hidden">
+        <div id="progressBar" class="bg-blue-300 h-full transition-all duration-300" style="width: 0%;"></div>
+      </div>
+
+
     </div>
 
     <!-- Resultat -->
@@ -90,7 +103,8 @@
 
     <!-- Spela igen -->
     <div id="restart" class="mt-6 text-center hidden">
-      <button onclick="restartQuiz()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl text-lg transition-all">
+      <button onclick="restartQuiz()"
+        class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl text-lg transition-all">
         Spela igen
       </button>
     </div>
@@ -99,17 +113,18 @@
 
   <script src="app.js"></script>
 
-<!-- Historik-knapp -->
-<div class="mt-10 text-center text-sm opacity-50 hover:opacity-100 transition-all">
-  <button onclick="showHistory()" class="underline hover:text-indigo-600">
-    📜 Tidigare rundor
-  </button>
-</div>
+  <!-- Historik-knapp -->
+  <div class="mt-10 text-center text-sm opacity-50 hover:opacity-100 transition-all">
+    <button onclick="showHistory()" class="underline hover:text-indigo-600">
+      📜 Tidigare rundor
+    </button>
+  </div>
 
-<!-- Här visas historiken -->
-<div id="historyContainer" class="mt-4 hidden text-sm text-gray-800 max-w-xl mx-auto"></div>
+  <!-- Här visas historiken -->
+  <div id="historyContainer" class="mt-4 hidden text-sm text-gray-800 max-w-xl mx-auto"></div>
 
 
 
 </body>
+
 </html>

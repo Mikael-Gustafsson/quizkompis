@@ -14,7 +14,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-const db = new sqlite3.Database('../ml-api/quiz.db'); // justera sökvägen om det behövs
+const db = new sqlite3.Database('../ml-api/quiz.db'); 
 
 
 // Hantera __dirname i ES modules

@@ -5,6 +5,8 @@ let questionCount = 0;
 let category = '';
 let startingDifficulty = '';
 let startTime = 0;
+let currentQuestionIndex = 0;
+
 
 
 function saveName() {
@@ -40,6 +42,11 @@ async function fetchNewQuestion() {
   });
 
   const data = await res.json();
+
+  document.getElementById("progressContainer").classList.remove("hidden");
+  currentQuestionIndex = 0;
+  updateProgressBar(currentQuestionIndex);
+
   showQuestion(data);
 }
 
@@ -84,13 +91,17 @@ async function submitAnswer(correct) {
       body: JSON.stringify({ score }) // <--- bara poängen
     });
 
-    
+
 
     document.getElementById('restart').classList.remove('hidden');
   } else {
     showQuestion(data);
+    currentQuestionIndex++;
+    updateProgressBar(currentQuestionIndex);
   }
 }
+
+
 
 function showQuestion(data) {
   document.getElementById('question').innerText = decodeURIComponent(data.question);
@@ -222,10 +233,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
-
 async function showHistory() {
   const container = document.getElementById("historyContainer");
 
+  // Växla visning av historiken
   if (!container.classList.contains("hidden")) {
     container.classList.add("hidden");
     container.innerHTML = "";
@@ -236,14 +247,17 @@ async function showHistory() {
     const res = await fetch("/all-scores");
     const data = await res.json();
 
-    if (data.length === 0) {
+    if (!Array.isArray(data) || data.length === 0) {
       container.innerHTML = "<p>Inga tidigare rundor ännu 📭</p>";
     } else {
+      // Visa de 5 senaste rundorna, nyast först (datan är redan sorterad)
+      const senasteFem = data.slice(0, 5);
+
       container.innerHTML = `
-        <h3 class="font-semibold mb-2">Tidigare poäng:</h3>
+        <h3 class="font-semibold mb-2">Senaste rundor:</h3>
         <ul class="space-y-1">
-          ${data.slice(0, 5).map(r => `
-            <li>Poäng: ${r[1]}</li>
+          ${senasteFem.map((r, i) => `
+            <li>Poäng ${r[1]}</li>
           `).join('')}
         </ul>
       `;
@@ -255,5 +269,16 @@ async function showHistory() {
     container.classList.remove("hidden");
   }
 }
+
+
+function updateProgressBar(currentQuestionIndex) {
+  const totalQuestions = 5;
+  const progress = Math.min((currentQuestionIndex / totalQuestions) * 100, 100);
+  const bar = document.getElementById("progressBar");
+  if (bar) {
+    bar.style.width = `${progress}%`;
+  }
+}
+
 
 

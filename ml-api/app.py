@@ -41,7 +41,7 @@ Fråga: {question}
 Alternativ:
 {options_text}
 
-Ge en smart ledtråd som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
+Ge en kort och smart ledtråd som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
 """
 
     try:
