@@ -44,7 +44,7 @@ Fråga: {question}
 Alternativ:
 {options_text}
 
-Ge en kort och smart ledtråd (MAX 40 tecken) som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
+Ge en kort och smart ledtråd (MAX 40 tecken, alltid på svenska) som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
 """
 
     try:
