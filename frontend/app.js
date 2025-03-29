@@ -99,13 +99,27 @@ function avslutaQuiz() {
 
 
 
-
-function showQuestion(data) {
-  document.getElementById('question').innerText = decodeURIComponent(data.question);
-
+async function showQuestion(data) {
+  const questionElem = document.getElementById('question');
+  const optionsDiv = document.getElementById('options');
   const helpButton = document.getElementById('helpBtn');
   const robotGreeting = document.getElementById('robotGreeting');
 
+  // Lägg till fade-klasser om inte redan finns
+  questionElem.classList.add('transition-opacity', 'duration-300');
+  optionsDiv.classList.add('transition-opacity', 'duration-300');
+
+  // Fade ut
+  questionElem.classList.add('opacity-0');
+  optionsDiv.classList.add('opacity-0');
+
+  await new Promise(resolve => setTimeout(resolve, 300)); // vänta 300ms
+
+  // Byt fråga
+  questionElem.innerText = decodeURIComponent(data.question);
+  optionsDiv.innerHTML = '';
+
+  // Visa hjälpknapp
   helpButton.classList.remove('hidden');
   helpButton.innerText = '💡 Få hjälp';
   helpButton.disabled = false;
@@ -136,10 +150,7 @@ function showQuestion(data) {
     helpButton.disabled = false;
   };
 
-  const optionsDiv = document.getElementById('options');
-  optionsDiv.innerHTML = '';
   const buttons = [];
-
   data.options.forEach(option => {
     const btn = document.createElement('button');
     btn.innerText = decodeURIComponent(option);
@@ -189,7 +200,12 @@ function showQuestion(data) {
     buttons.push(btn);
     optionsDiv.appendChild(btn);
   });
+
+  // Fade in nya
+  questionElem.classList.remove('opacity-0');
+  optionsDiv.classList.remove('opacity-0');
 }
+
 
 function restartQuiz() {
   score = 0;

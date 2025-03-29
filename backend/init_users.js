@@ -1,10 +1,10 @@
 import sqlite3 from 'sqlite3';
 import bcrypt from 'bcrypt';
 
-const db = new sqlite3.Database('../ml-api/quiz.db'); 
+const db = new sqlite3.Database('../ml-api/quiz.db');
 
-const username = 'test';
-const password = 'test123';
+const username = 'student';
+const password = 'Gv9!qR2s#8kA'; // starkt lösenord
 
 bcrypt.hash(password, 10, (err, hash) => {
   if (err) return console.error('Fel vid hash:', err);
@@ -23,7 +23,7 @@ bcrypt.hash(password, 10, (err, hash) => {
       VALUES (?, ?)
     `, [username, hash], (err) => {
       if (err) return console.error('Fel vid INSERT:', err);
-      console.log('✔️ Användare "test" skapad med lösenord "test123"');
+      console.log(`✔️ Användare "${username}" skapad med starkt lösenord.`);
     });
   });
 });

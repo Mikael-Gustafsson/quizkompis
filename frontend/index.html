@@ -81,7 +81,7 @@
 
       <!-- Fråga + hjälpknapp i rad -->
       <div class="flex justify-between items-start mb-4 gap-4">
-        <h2 id="question" class="text-xl font-medium max-w-[75%]"></h2>
+        <h2 id="question" class="text-xl font-medium max-w-[75%] transition-opacity duration-300 opacity-100"></h2>
         <button id="helpBtn"
           class="hidden whitespace-nowrap bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-4 py-2 rounded-xl transition-all text-sm">
           💡 Få AI-hjälp
@@ -89,7 +89,7 @@
       </div>
 
       <!-- Svarsalternativ -->
-      <div id="options" class="space-y-2"></div>
+      <div id="options" class="space-y-2 transition-opacity duration-300 opacity-100"></div>
       <!-- Progressbar -->
       <div id="progressContainer" class="w-full bg-gray-200 rounded-full h-3 mt-5 mb-4 overflow-hidden hidden">
         <div id="progressBar" class="bg-blue-300 h-full transition-all duration-300" style="width: 0%;"></div>
