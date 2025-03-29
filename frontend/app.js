@@ -1,3 +1,4 @@
+// Huvudkonstanter och tillstånd
 const TOTAL_QUESTIONS = 5;
 let userName = '';
 let score = 0;
@@ -5,14 +6,12 @@ let questionCount = 0;
 let category = '';
 let startingDifficulty = '';
 let startTime = 0;
-let currentQuestionIndex = 0;
-let allQuestions = [];
 let currentIndex = 0;
-
-
+let allQuestions = [];
 
 function saveName() {
-  userName = document.getElementById('nameInput').value.trim();
+
+  userName = document.getElementById('nameInput').value.trim().replace(/\s+/g, ' ');
   if (!userName) return alert("Skriv ditt namn först!");
 
   category = document.getElementById('categorySelect').value;
@@ -22,13 +21,9 @@ function saveName() {
   document.getElementById('quiz').classList.remove('hidden');
 
   typeWriterEffect("robotGreeting", `Lycka till, ${userName}! Nu kör vi!`);
-
   startTime = Date.now();
 
-  setTimeout(() => {
-    document.getElementById("robotGreeting").classList.add("hidden");
-  }, 3000);
-
+  setTimeout(hideRobotBubble, 3000);
   setTimeout(fetchNewQuestion, 3000);
 }
 
@@ -36,11 +31,7 @@ async function fetchNewQuestion() {
   const res = await fetch('/get-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      category,
-      startingDifficulty,
-      amount: TOTAL_QUESTIONS
-    })
+    body: JSON.stringify({ category, startingDifficulty, amount: TOTAL_QUESTIONS })
   });
 
   const data = await res.json();
@@ -51,10 +42,8 @@ async function fetchNewQuestion() {
 
   document.getElementById("progressContainer").classList.remove("hidden");
   updateProgressBar(currentIndex);
-
   showQuestion(allQuestions[currentIndex]);
 }
-
 
 async function submitAnswer(correct) {
   if (correct) score++;
@@ -62,6 +51,9 @@ async function submitAnswer(correct) {
   currentIndex++;
 
   updateProgressBar(currentIndex);
+
+  // 🟡 Göm gammalt pratbubbel-meddelande
+  hideRobotBubble();
 
   if (questionCount >= TOTAL_QUESTIONS) {
     avslutaQuiz();
@@ -83,19 +75,41 @@ function avslutaQuiz() {
     message = 'Jag tror du behöver träna lite mer innan tentan 😅';
   }
 
-  const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt! ${message}\n\nVill du spela igen? Tryck på knappen nedan! 🔁`;
-  const robotBubble = document.getElementById('robotGreeting');
-  robotBubble.classList.remove('hidden');
-  typeWriterEffect("robotGreeting", fullMessage);
+  const fullMessage = `${userName}, du fick ${score} av ${TOTAL_QUESTIONS} rätt!<br><br>${message}<br><br>Vill du spela igen? Tryck på knappen nedan! 🔁`;
 
+  const robotGreeting = document.getElementById("robotGreeting");
+  const bubbleTail = document.getElementById("bubbleTail");
+
+  // Visa snurra medan vi väntar
+  robotGreeting.innerHTML = `
+  <svg class="animate-spin inline h-5 w-5 text-yellow-700 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+  </svg>
+  Vänta lite... jag räknar ditt resultat 🤔
+`;
+
+
+
+  robotGreeting.classList.remove("hidden");
+  robotGreeting.classList.add("min-h-[180px]");
+  if (bubbleTail) bubbleTail.classList.remove("hidden");
+
+  // Spara poäng till server direkt
   fetch('/save-score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ score })
   });
 
-  document.getElementById('restart').classList.remove('hidden');
+  // Visa slutmeddelande efter 2.5 sekunder
+  setTimeout(() => {
+    robotGreeting.innerHTML = fullMessage;
+    document.getElementById('restart').classList.remove('hidden');
+  }, 2500);
 }
+
+
 
 
 
@@ -103,23 +117,17 @@ async function showQuestion(data) {
   const questionElem = document.getElementById('question');
   const optionsDiv = document.getElementById('options');
   const helpButton = document.getElementById('helpBtn');
-  const robotGreeting = document.getElementById('robotGreeting');
 
-  // Lägg till fade-klasser om inte redan finns
   questionElem.classList.add('transition-opacity', 'duration-300');
   optionsDiv.classList.add('transition-opacity', 'duration-300');
-
-  // Fade ut
   questionElem.classList.add('opacity-0');
   optionsDiv.classList.add('opacity-0');
 
-  await new Promise(resolve => setTimeout(resolve, 300)); // vänta 300ms
+  await new Promise(resolve => setTimeout(resolve, 300));
 
-  // Byt fråga
   questionElem.innerText = decodeURIComponent(data.question);
   optionsDiv.innerHTML = '';
 
-  // Visa hjälpknapp
   helpButton.classList.remove('hidden');
   helpButton.innerText = '💡 Få hjälp';
   helpButton.disabled = false;
@@ -132,17 +140,12 @@ async function showQuestion(data) {
       const res = await fetch('/get-hint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: data.question,
-          options: data.options
-        })
+        body: JSON.stringify({ question: data.question, options: data.options })
       });
 
       const result = await res.json();
-      robotGreeting.classList.remove('hidden');
       typeWriterEffect("robotGreeting", result.hint);
-    } catch (error) {
-      robotGreeting.classList.remove('hidden');
+    } catch {
       typeWriterEffect("robotGreeting", "❌ Kunde inte hämta tips.");
     }
 
@@ -150,7 +153,6 @@ async function showQuestion(data) {
     helpButton.disabled = false;
   };
 
-  const buttons = [];
   data.options.forEach(option => {
     const btn = document.createElement('button');
     btn.innerText = decodeURIComponent(option);
@@ -159,49 +161,38 @@ async function showQuestion(data) {
 
     btn.onclick = () => {
       const isCorrect = option === data.answer;
-
       btn.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
       btn.classList.add(isCorrect ? 'bg-green-400' : 'bg-red-400');
 
-      buttons.forEach(b => {
+      document.querySelectorAll('#options button').forEach(b => {
+        b.disabled = true;
         if (b.innerText === decodeURIComponent(data.answer)) {
           b.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
           b.classList.add('bg-green-400');
         }
-        b.disabled = true;
       });
 
-      fetch('/get-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ correct: isCorrect })
-      })
-        .then(res => res.json())
-        .then(data => {
-          robotGreeting.classList.remove('hidden');
-          typeWriterEffect("robotGreeting", data.feedback);
-        })
-        .catch(() => {
-          robotGreeting.classList.remove('hidden');
-          typeWriterEffect("robotGreeting", isCorrect ? "Bra!" : "Nästan!");
-        });
-
+      // ⬇️ Visa feedback bara om det inte är sista frågan
       if (questionCount < TOTAL_QUESTIONS - 1) {
-        setTimeout(() => {
-          robotGreeting.classList.add('hidden');
-        }, 2000);
-      }
+        fetch('/get-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correct: isCorrect })
+        })
+          .then(res => res.json())
+          .then(data => typeWriterEffect("robotGreeting", data.feedback))
+          .catch(() => typeWriterEffect("robotGreeting", isCorrect ? "Bra!" : "Nästan!"));
 
-      setTimeout(() => {
+        setTimeout(hideRobotBubble, 2500);
+        setTimeout(() => submitAnswer(isCorrect), 2500);
+      } else {
         submitAnswer(isCorrect);
-      }, 1000);
+      }
     };
 
-    buttons.push(btn);
     optionsDiv.appendChild(btn);
   });
 
-  // Fade in nya
   questionElem.classList.remove('opacity-0');
   optionsDiv.classList.remove('opacity-0');
 }
@@ -219,37 +210,66 @@ function restartQuiz() {
   document.getElementById('score')?.classList.add('hidden');
   document.getElementById('restart').classList.add('hidden');
   document.getElementById('nameInput').value = '';
-  document.getElementById('robotGreeting').classList.add('hidden');
+  document.getElementById("robotGreeting").classList.remove("min-h-[180px]");
+  hideRobotBubble();
+
 }
 
 function typeWriterEffect(elementId, text, speed = 30) {
   const element = document.getElementById(elementId);
-  element.textContent = '';
+  const bubbleTail = document.getElementById("bubbleTail");
+
+  if (!element) return;
+
+  element.classList.remove("hidden");
+  if (bubbleTail) bubbleTail.classList.remove("hidden");
+
+  // Dela upp HTML-texten i rena tecken utan att bryta taggar
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = text;
+  const fullText = tempDiv.innerText; // Ren text, utan taggar
+  element.innerHTML = '';
+
   let index = 0;
 
   function type() {
-    if (index < text.length) {
-      element.textContent += text.charAt(index);
+    if (index < fullText.length) {
+      element.innerHTML += fullText.charAt(index);
       index++;
       setTimeout(type, speed);
+    } else {
+      // Lägg tillbaka HTML-versionen efter effekten
+      element.innerHTML = text;
     }
   }
 
   type();
 }
 
+
+
+
+function hideRobotBubble() {
+  const element = document.getElementById('robotGreeting');
+  const bubbleTail = document.getElementById('bubbleTail');
+
+  if (element) element.classList.add('hidden');
+  if (bubbleTail) bubbleTail.classList.add('hidden');
+}
+
+
 window.addEventListener("DOMContentLoaded", () => {
   typeWriterEffect("robotGreeting", "Hej! Jag är din quizkompis. Redo att träna?");
 });
 
-
-
-
+function updateProgressBar(currentQuestionIndex) {
+  const progress = Math.min((currentQuestionIndex / TOTAL_QUESTIONS) * 100, 100);
+  const bar = document.getElementById("progressBar");
+  if (bar) bar.style.width = `${progress}%`;
+}
 
 async function showHistory() {
   const container = document.getElementById("historyContainer");
-
-  // Växla visning av historiken
   if (!container.classList.contains("hidden")) {
     container.classList.add("hidden");
     container.innerHTML = "";
@@ -263,35 +283,17 @@ async function showHistory() {
     if (!Array.isArray(data) || data.length === 0) {
       container.innerHTML = "<p>Inga tidigare rundor ännu 📭</p>";
     } else {
-      // Visa de 5 senaste rundorna, nyast först (datan är redan sorterad)
-      const senasteFem = data.slice(0, 5);
-
       container.innerHTML = `
         <h3 class="font-semibold mb-2">Senaste rundor:</h3>
         <ul class="space-y-1">
-          ${senasteFem.map((r, i) => `
-            <li>Poäng ${r[1]}</li>
-          `).join('')}
+          ${data.slice(0, 5).map(r => `<li>Poäng ${r[1]}</li>`).join('')}
         </ul>
       `;
     }
 
     container.classList.remove("hidden");
-  } catch (err) {
+  } catch {
     container.innerHTML = "<p>Kunde inte hämta historiken 😕</p>";
     container.classList.remove("hidden");
   }
 }
-
-
-function updateProgressBar(currentQuestionIndex) {
-  const totalQuestions = 5;
-  const progress = Math.min((currentQuestionIndex / totalQuestions) * 100, 100);
-  const bar = document.getElementById("progressBar");
-  if (bar) {
-    bar.style.width = `${progress}%`;
-  }
-}
-
-
-
