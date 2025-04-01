@@ -1,25 +1,28 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from database import init_db, save_score, get_all_scores
-from model import choose_question
+from model import choose_questions
 from openai import OpenAI
 import os
 
-# Ladda API-nyckel från miljövariabel
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
+CORS(app)  # Viktigt för att frontend ska kunna göra POST-anrop
 init_db()
 
-
-@app.route('/get-question', methods=['POST'])
-def get_question():
+# ✅ Ny: Hämta flera frågor på en gång
+@app.route('/get-questions', methods=['POST'])
+def get_questions():
     data = request.get_json()
-    history = data.get('history', [])
     category = data.get('category', 9)
     starting_difficulty = data.get('startingDifficulty', 'easy')
+    amount = int(data.get('amount', 5))
 
-    question = choose_question(history, category, starting_difficulty)
-    return jsonify(question)
+    questions = choose_questions(amount, category, starting_difficulty)
+
+    return jsonify({'questions': questions})
+
 
 @app.route('/get-hint', methods=['POST'])
 def get_hint():
@@ -41,7 +44,7 @@ Fråga: {question}
 Alternativ:
 {options_text}
 
-Ge en smart ledtråd som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
+Ge en kort och smart ledtråd (MAX 40 tecken, alltid på svenska) som kan hjälpa eleven hitta rätt svar, men avslöja inte svaret rakt ut.
 """
 
     try:
@@ -67,9 +70,9 @@ def get_feedback():
     correct = data.get("correct", False)
 
     user_prompt = (
-        "Ge ett kort, positivt och peppande uttryck (max 2 ord) om eleven svarar rätt."
+        "Ge ett kort, positivt och peppande uttryck (max 2 ord, alltid på svenska) om eleven svarar rätt."
         if correct else
-        "Ge ett kort, vänligt uttryck (max 2 ord) om eleven svarar fel."
+        "Ge ett kort, vänligt uttryck (max 2 ord, alltid på svenska) om eleven svarar fel."
     )
 
     try:

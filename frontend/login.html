@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Logga in</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm text-center">
+    <img src="robot-head.png" alt="Robot" class="w-24 h-24 mx-auto mb-4" />
+
+    <h2 class="text-3xl font-bold text-gray-800 mb-1">Välkommen till <span class="text-blue-600">Quizkompis 😀</span>
+    </h2>
+    <p class="text-gray-600 text-sm mb-4">Logga in och kör igång!</p>
+
+    <form id="loginForm" class="flex flex-col gap-4">
+      <input name="username" type="text" placeholder="Användarnamn" required
+        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+
+      <input name="password" type="password" placeholder="Lösenord" required
+        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+
+      <button type="submit" id="loginButton"
+        class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition text-sm">
+        Logga in
+      </button>
+    </form>
+
+    <!-- Spinner (gömd från början) -->
+    <div id="loader" class="hidden flex items-center justify-center mt-4">
+      <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span class="ml-2 text-blue-600 text-sm">Loggar in...</span>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = e.target.username.value.trim();
+      const password = e.target.password.value.trim();
+
+      // Visa spinner, dölj knapp
+      document.getElementById('loader').classList.remove('hidden');
+      document.getElementById('loginButton').classList.add('hidden');
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          // Vänta för att visa spinnern lite längre
+          setTimeout(() => {
+            window.location.href = '/index.html';
+          }, 1300);
+        } else {
+          alert(data.error || "Fel användarnamn eller lösenord");
+          document.getElementById('loader').classList.add('hidden');
+          document.getElementById('loginButton').classList.remove('hidden');
+        }
+      } catch (err) {
+        alert("Något gick fel med servern 😢");
+        document.getElementById('loader').classList.add('hidden');
+        document.getElementById('loginButton').classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -3,12 +3,37 @@ import fetch from 'node-fetch';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import session from 'express-session';
+import bcrypt from 'bcrypt';
+import sqlite3 from 'sqlite3';
 
 const app = express();
+app.use(session({
+  secret: 'hemlig-nyckel',
+  resave: false,
+  saveUninitialized: false
+}));
+
+const db = new sqlite3.Database('../ml-api/quiz.db');
+
 
 // Hantera __dirname i ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+
+app.use((req, res, next) => {
+  const publicPaths = ['/login', '/logout'];
+  const isStatic = req.path.endsWith('.html') || req.path.endsWith('.js') || req.path.endsWith('.css') || req.path.endsWith('.png');
+
+  if (req.session.user || publicPaths.includes(req.path) || isStatic) {
+    next();
+  } else {
+    res.redirect('/login.html');
+  }
+});
+
+
 
 // Låt express servera frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
@@ -29,7 +54,7 @@ app.post('/submit-answer', async (req, res) => {
     userHistory.push({ correct });
   }
 
-  const response = await fetch('http://localhost:5000/get-question', {
+  const response = await fetch('http://localhost:5000/get-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -42,6 +67,26 @@ app.post('/submit-answer', async (req, res) => {
   const data = await response.json();
   res.json(data);
 });
+
+
+// POST: /get-questions → skickas vidare till Flask
+app.post('/get-questions', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5000/get-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("💥 Fel vid vidarebefordran av frågor:", err);
+    res.status(500).json({ questions: [] });
+  }
+});
+
+
 
 // POST: /get-hint → skickas vidare till Flask
 app.post('/get-hint', async (req, res) => {
@@ -108,6 +153,30 @@ app.get('/all-scores', async (req, res) => {
     res.status(500).json({ error: "Kunde inte hämta historik" });
   }
 });
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  db.get('SELECT * FROM users WHERE username = ?', [username], async (err, row) => {
+    if (err) return res.status(500).json({ error: 'Databasfel' });
+    if (!row) return res.status(401).json({ error: 'Fel användarnamn eller lösenord' });
+
+    const match = await bcrypt.compare(password, row.password_hash);
+    if (match) {
+      req.session.user = { username: row.username };
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ error: 'Fel användarnamn eller lösenord' });
+    }
+  });
+});
+
+app.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.json({ loggedOut: true });
+  });
+});
+
 
 
 
